@@ -1,0 +1,37 @@
+name: Liquibase – Validate & offline SQL
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) Validación sintáctica de Liquibase (no requiere DB)
+      - name: Liquibase Validate (no DB)
+        run: |
+          docker run --rm -v "$PWD":/liquibase liquibase/liquibase:4.33.0 \
+            --changelog-file=db-project/liquibase/changelog-master.xml \
+            validate
+
+      # 2) Generación de SQL en modo offline para Oracle 21c (no requiere DB)
+      - name: Liquibase updateSQL (offline oracle 21c)
+        run: |
+          docker run --rm -v "$PWD":/liquibase liquibase/liquibase:4.33.0 \
+            --url="offline:oracle?version=21" \
+            --changelog-file=db-project/liquibase/changelog-master.xml \
+            updateSQL | tee /tmp/liquibase-update.sql
+
+      # 3) Publica el SQL generado como artefacto del workflow
+      - name: Publicar artefacto updateSQL
+        uses: actions/upload-artifact@v4
+        with:
+          name: updateSQL-offline-oracle
+          path: /tmp/liquibase-update.sql
