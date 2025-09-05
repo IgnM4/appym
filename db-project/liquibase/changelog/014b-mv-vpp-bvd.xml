@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <!-- Variante A: usar SUBTOTAL directamente -->
+  <changeSet id="014b4a-mv-vpp-bvd-subtotal" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+      <!-- No crear si ya existe -->
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+
+      <tableExists tableName="BOLETA_VENTA_DETALLE"/>
+      <tableExists tableName="BOLETA_VENTA"/>
+      <tableExists tableName="PRODUCTO"/>
+
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="ID_PRODUCTO"/>
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="CANTIDAD"/>
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="SUBTOTAL"/>
+
+      <columnExists tableName="PRODUCTO" columnName="ID_PRODUCTO"/>
+      <columnExists tableName="PRODUCTO" columnName="NOMBRE"/>
+      <!-- SKU y COSTO son opcionales; si no hay COSTO, lo tratamos como 0 -->
+    </preConditions>
+
+    <sql>
+      CREATE MATERIALIZED VIEW mv_ventas_por_producto
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        NVL(p.sku, TO_CHAR(p.id_producto))              AS sku,
+        p.nombre                                        AS nombre,
+        SUM(d.cantidad)                                 AS unidades_vendidas,
+        SUM(d.subtotal)                                 AS monto_vendido,
+        SUM(d.cantidad * NVL(p.costo, 0))               AS costo_estimado,
+        SUM(d.subtotal) - SUM(d.cantidad * NVL(p.costo,0)) AS utilidad_estimada
+      FROM boleta_venta_detalle d
+      JOIN producto p     ON p.id_producto = d.id_producto
+      JOIN boleta_venta b ON b.id_boleta   = d.id_boleta
+      WHERE b.estado = 'PAGADA'
+      GROUP BY NVL(p.sku, TO_CHAR(p.id_producto)), p.nombre
+    </sql>
+
+    <sql>CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku)</sql>
+
+    <rollback>
+      <sql>DROP INDEX ix_mv_vpp__sku</sql>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- Variante B: si no hay SUBTOTAL, calcular con PRECIO_UNITARIO y DESCUENTO -->
+  <changeSet id="014b4b-mv-vpp-bvd-precio" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+
+      <tableExists tableName="BOLETA_VENTA_DETALLE"/>
+      <tableExists tableName="BOLETA_VENTA"/>
+      <tableExists tableName="PRODUCTO"/>
+
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="ID_PRODUCTO"/>
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="CANTIDAD"/>
+      <columnExists tableName="BOLETA_VENTA_DETALLE" columnName="PRECIO_UNITARIO"/>
+      <!-- DESCUENTO es opcional -->
+      <columnExists tableName="PRODUCTO" columnName="ID_PRODUCTO"/>
+      <columnExists tableName="PRODUCTO" columnName="NOMBRE"/>
+    </preConditions>
+
+    <sql>
+      CREATE MATERIALIZED VIEW mv_ventas_por_producto
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        NVL(p.sku, TO_CHAR(p.id_producto))                                  AS sku,
+        p.nombre                                                            AS nombre,
+        SUM(d.cantidad)                                                     AS unidades_vendidas,
+        SUM(d.cantidad * d.precio_unitario - NVL(d.descuento,0))            AS monto_vendido,
+        SUM(d.cantidad * NVL(p.costo, 0))                                   AS costo_estimado,
+        SUM(d.cantidad * d.precio_unitario - NVL(d.descuento,0))
+          - SUM(d.cantidad * NVL(p.costo,0))                                AS utilidad_estimada
+      FROM boleta_venta_detalle d
+      JOIN producto p     ON p.id_producto = d.id_producto
+      JOIN boleta_venta b ON b.id_boleta   = d.id_boleta
+      WHERE b.estado = 'PAGADA'
+      GROUP BY NVL(p.sku, TO_CHAR(p.id_producto)), p.nombre
+    </sql>
+
+    <sql>CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku)</sql>
+
+    <rollback>
+      <sql>DROP INDEX ix_mv_vpp__sku</sql>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

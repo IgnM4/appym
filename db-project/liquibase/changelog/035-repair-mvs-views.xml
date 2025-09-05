@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!-- 035a: crea MV_VENTAS_DIARIAS si falta -->
+  <changeSet id="035a-mv-vd-create-if-missing" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_DIARIAS'
+      </sqlCheck>
+    </preConditions>
+    <sql>
+      CREATE MATERIALIZED VIEW mv_ventas_diarias
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT TRUNC(b.fecha) AS dia,
+             SUM(b.total)   AS total_ventas,
+             SUM(b.neto)    AS total_neto,
+             SUM(b.iva)     AS total_iva
+        FROM boleta_venta b
+       WHERE b.estado = 'PAGADA'
+       GROUP BY TRUNC(b.fecha)
+    </sql>
+    <rollback>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_diarias</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 035b: recompila MV_VENTAS_POR_PRODUCTO si existe -->
+  <changeSet id="035b-mv-vpp-compile-if-exists" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+    </preConditions>
+    <sql>ALTER MATERIALIZED VIEW mv_ventas_por_producto COMPILE</sql>
+  </changeSet>
+
+  <!-- 035c: crea vista v_kpi_ventas_diarias si falta y existe la MV -->
+  <changeSet id="035c-view-kpi-vd-if-mv" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">
+          SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_DIARIAS'
+        </sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) FROM user_views WHERE view_name='V_KPI_VENTAS_DIARIAS'
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <sql>
+      CREATE OR REPLACE VIEW v_kpi_ventas_diarias AS
+      SELECT dia, total_ventas, total_neto, total_iva
+      FROM mv_ventas_diarias
+    </sql>
+    <rollback>
+      <sql>DROP VIEW v_kpi_ventas_diarias</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 035d: crea vista v_kpi_ventas_por_producto si falta y existe la MV -->
+  <changeSet id="035d-view-kpi-vpp-if-mv" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">
+          SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+        </sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) FROM user_views WHERE view_name='V_KPI_VENTAS_POR_PRODUCTO'
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <sql>
+      CREATE OR REPLACE VIEW v_kpi_ventas_por_producto AS
+      SELECT sku, nombre, unidades_vendidas, monto_vendido, costo_estimado, utilidad_estimada
+      FROM mv_ventas_por_producto
+    </sql>
+    <rollback>
+      <sql>DROP VIEW v_kpi_ventas_por_producto</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

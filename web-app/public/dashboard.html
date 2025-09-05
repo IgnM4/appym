@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel Principal</title>
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <script src="js/metrics.js" defer></script>
+  <script type="module" src="js/dashboard.js"></script>
+</head>
+<body class="dashboard">
+  <aside class="sidebar">
+    <h2>Menú</h2>
+    <ul>
+      <li><a href="#dash">Dashboard</a></li>
+      <li><a href="#compras">Compras</a></li>
+      <li><a href="#inventario">Inventario</a></li>
+      <li><a href="#ventas">Ventas</a></li>
+      <li><a href="#clientes">Clientes</a></li>
+      <li><a href="#reportes">Reportes</a></li>
+      <li><a href="#config">Configuración</a></li>
+    </ul>
+  </aside>
+  <main id="content">
+    <section id="dash" class="panel active">
+      <h1>Dashboard</h1>
+      <p>Gráficas interactivas de ventas y compras.</p>
+      <div id="dashStatus" class="msg info"></div>
+    </section>
+    <section id="compras" class="panel">
+      <h1>Ingresar Compra</h1>
+      <form id="purchaseForm" class="form-grid">
+        <label>Proveedor
+          <input type="text" id="provName" required />
+        </label>
+        <label>Producto
+          <input type="text" id="purchaseProduct" required />
+        </label>
+        <label>Cantidad
+          <input type="number" id="purchaseQty" required />
+        </label>
+        <label>Precio unitario
+          <input type="number" step="0.01" id="purchasePrice" required />
+        </label>
+        <button type="submit" class="btn">Guardar compra</button>
+      </form>
+      <p id="purchaseMsg" class="msg success hidden">Compra guardada.</p>
+    </section>
+    <section id="inventario" class="panel">
+      <h1>Inventario y Productos</h1>
+      <button id="btnAddProduct" class="btn">Agregar Producto</button>
+      <form id="productForm" class="form-grid hidden">
+        <label>SKU
+          <input type="text" id="productSku" required />
+        </label>
+        <label>Nombre
+          <input type="text" id="productName" required />
+        </label>
+        <label>Precio
+          <input type="number" step="0.01" id="productPrice" required />
+        </label>
+        <label>Stock
+          <input type="number" id="productStock" required />
+        </label>
+        <button type="submit" class="btn">Guardar producto</button>
+      </form>
+      <table id="inventoryTable">
+        <thead>
+          <tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Stock</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section id="ventas" class="panel">
+      <h1>Registrar Venta</h1>
+      <form id="salesForm" class="form-grid">
+        <label>Producto
+          <input type="text" id="saleProduct" required />
+        </label>
+        <label>Cantidad
+          <input type="number" id="saleQty" required />
+        </label>
+        <label>Cliente
+          <input type="text" id="saleClient" />
+        </label>
+        <label>Método de pago
+          <select id="saleMethod">
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+        </label>
+        <button type="submit" class="btn">Registrar venta</button>
+      </form>
+      <p id="saleMsg" class="msg success hidden">Venta registrada.</p>
+    </section>
+    <section id="clientes" class="panel">
+      <h1>Clientes</h1>
+      <form id="clientForm" class="form-grid">
+        <label>Nombre
+          <input type="text" id="clientName" required />
+        </label>
+        <label>Dirección
+          <input type="text" id="clientAddress" />
+        </label>
+        <label>Teléfono
+          <input type="tel" id="clientPhone" />
+        </label>
+        <button type="submit" class="btn">Guardar cliente</button>
+      </form>
+      <table id="clientsTable">
+        <thead>
+          <tr><th>Nombre</th><th>Dirección</th><th>Teléfono</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section id="reportes" class="panel">
+      <h1>Reportes y Exportaciones</h1>
+      <p>Descarga de reportes.</p>
+      <button class="btn" id="btnExport">Exportar CSV</button>
+    </section>
+    <section id="config" class="panel">
+      <h1>Configuraciones</h1>
+      <form id="configForm" class="form-grid">
+        <label>Nombre empresa
+          <input type="text" id="cfgCompany" required />
+        </label>
+        <label>RUC
+          <input type="text" id="cfgRuc" required />
+        </label>
+        <label>Dirección
+          <input type="text" id="cfgAddress" />
+        </label>
+        <button type="submit" class="btn">Guardar</button>
+      </form>
+    </section>
+  </main>
+  <div id="metrics" class="metrics"></div>
+</body>
+</html>

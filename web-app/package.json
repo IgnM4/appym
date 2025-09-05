@@ -1,0 +1,15 @@
+{
+  "name": "web-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "firebase serve",
+    "deploy": "firebase deploy",
+    "lint": "prettier --check \"public/**/*.js\"",
+    "lh": "lighthouse http://localhost:5000 --quiet --chrome-flags='--headless'"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "lighthouse": "^11.7.1"
+  }
+}

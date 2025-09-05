@@ -1,0 +1,63 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/app.ts",
+    "start:dev": "tsx src/app.ts",
+    "build": "tsc -p tsconfig.json && npm run openapi:gen",
+    "start:prod": "node dist/app.js",
+    "openapi:gen": "tsx src/openapi.ts",
+    "coverage": "npm run test -- --coverage",
+    "migrate": "powershell -ExecutionPolicy Bypass -File ./migrate.ps1",
+    "db:check": "powershell -NoProfile -File ./db-check.ps1",
+    "lint": "eslint . --ext .ts,.tsx,.js,.cjs",
+    "lint:fix": "eslint . --fix",
+    "depcheck": "npx depcheck --ignores=oracledb",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "ROLLUP_DISABLE_NATIVE=1 vitest run",
+    "test:watch": "ROLLUP_DISABLE_NATIVE=1 vitest"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^7.0.0",
+    "jose": "^5.10.0",
+    "pino": "^9.9.0",
+    "pino-http": "^10.5.0",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.23.8"
+  },
+  "optionalDependencies": {
+    "oracledb": "^6.9.0"
+  },
+  "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.2",
+    "@eslint/js": "^9.34.0",
+    "@rollup/rollup-linux-x64-gnu": "^4.50.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.23",
+    "@types/node": "^20.19.11",
+    "@types/supertest": "^6.0.3",
+    "@types/swagger-ui-express": "^4.1.6",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "pino-pretty": "^11.0.0",
+    "prettier": "^3.6.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vitest": "^2.1.5",
+    "@esbuild/linux-x64": "0.25.9"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

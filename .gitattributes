@@ -1,0 +1,23 @@
+# Normalize line endings across OS
+* text=auto eol=lf
+
+# Keep images/binaries as-is
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+
+# Ensure shell/batch/ps1 use LF in repo (Windows Git will convert on checkout if core.autocrlf)
+*.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=crlf
+
+# Treat TypeScript/JS as text
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf

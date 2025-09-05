@@ -1,0 +1,9 @@
+{
+  "name": "PyME Gas",
+  "short_name": "GasPyME",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "Dashboard y POS offline",
+  "icons": []
+}

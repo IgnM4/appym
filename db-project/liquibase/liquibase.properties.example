@@ -1,0 +1,8 @@
+# Se usa --defaultsFile apuntando a una copia REAL sin credenciales en git
+classpath=./drivers
+changeLogFile=./changelog-master.xml
+
+# Variables provistas desde el entorno o línea de comando
+url=${LIQUI_URL}
+username=${LIQUI_USER}
+password=${LIQUI_PASS}

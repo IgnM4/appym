@@ -1,0 +1,11 @@
+@../ddl/01_tables.sql
+@../ddl/02_constraints.sql
+@../ddl/03_indexes.sql
+@../ddl/05_views.sql
+@../ddl/06_seed.sql
+@../ddl/07_triggers.sql
+@../ddl/12_rut_chile.sql
+@../ddl/13_export_csv.sql
+@../ddl/14_mv_kpis.sql
+@../ddl/14a_grants_mv.sql
+@../ddl/15_scheduler_kpis.sql

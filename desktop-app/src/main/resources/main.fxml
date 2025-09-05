@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+<VBox xmlns="http://javafx.com/javafx/21.0.3" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.app.controllers.MainController" spacing="10" padding="10" fx:id="root"
+      stylesheets="@styles.css">
+    <HBox spacing="10">
+        <DatePicker fx:id="dpFrom"/>
+        <DatePicker fx:id="dpTo"/>
+        <Button text="Refrescar KPIs" onAction="#refreshKpis"/>
+        <Button text="Exportar CSV" onAction="#exportCsv"/>
+        <Button text="Abrir carpeta" onAction="#openFolder"/>
+    </HBox>
+    <LineChart fx:id="lineChart" title="Ventas Diarias">
+        <xAxis><CategoryAxis label="Día"/></xAxis>
+        <yAxis><NumberAxis label="Total"/></yAxis>
+    </LineChart>
+    <BarChart fx:id="barChart" title="Ventas por Producto">
+        <xAxis><CategoryAxis label="Producto"/></xAxis>
+        <yAxis><NumberAxis label="Unidades"/></yAxis>
+    </BarChart>
+    <TableView fx:id="tblProductos">
+        <columns>
+            <TableColumn text="SKU" prefWidth="100"/>
+            <TableColumn text="Nombre" prefWidth="200"/>
+            <TableColumn text="Unidades" prefWidth="100"/>
+            <TableColumn text="Monto" prefWidth="100"/>
+        </columns>
+    </TableView>
+</VBox>

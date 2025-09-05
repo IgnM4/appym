@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="020-scheduler-tz" author="sgbd" context="admin">
+    <comment>Fija la zona horaria por defecto del Scheduler</comment>
+
+    <!-- Importante: splitStatements="false" y endDelimiter="/" para PL/SQL -->
+    <sql splitStatements="false" endDelimiter="/">
+      BEGIN
+        DBMS_SCHEDULER.set_scheduler_attribute('default_timezone','America/Santiago');
+      END;
+      /
+    </sql>
+
+    <rollback>
+      <sql splitStatements="false" endDelimiter="/">
+        BEGIN
+          DBMS_SCHEDULER.set_scheduler_attribute('default_timezone','UTC');
+        END;
+        /
+      </sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

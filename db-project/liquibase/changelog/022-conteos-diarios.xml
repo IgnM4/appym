@@ -1,0 +1,85 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!-- DDL puro: tablas, FKs, índices, MERGE seed -->
+  <changeSet id="022-conteos-diarios" author="sgbd">
+    <sqlFile path="../../ddl/022_conteos_diarios.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             endDelimiter=";"
+             stripComments="true"
+             encoding="UTF-8"/>
+  </changeSet>
+
+  <!-- Solo la PROCEDURE, sin split de ; internos -->
+  <changeSet id="022-conteos-diarios-proc" author="sgbd" runOnChange="true">
+    <sql splitStatements="false" endDelimiter=";">
+      <![CDATA[
+CREATE OR REPLACE PROCEDURE pr_conteo_confirmar(p_id_conteo IN NUMBER) IS
+  v_id_ubicacion ubicacion.id_ubicacion%TYPE;
+  v_confirmado  conteo_inv_cab.confirmado%TYPE;
+BEGIN
+  SELECT id_ubicacion, confirmado
+    INTO v_id_ubicacion, v_confirmado
+    FROM conteo_inv_cab
+   WHERE id_conteo = p_id_conteo
+   FOR UPDATE;
+
+  IF v_confirmado = 'S' THEN
+    RETURN;
+  END IF;
+
+  FOR r IN (
+    SELECT d.id_producto,
+           d.llenos,
+           d.vacios,
+           NVL(s.llenos,0) AS llenos_actual,
+           NVL(s.vacios,0) AS vacios_actual
+      FROM conteo_inv_det d
+      LEFT JOIN stock_ubicacion s
+        ON s.id_ubicacion = v_id_ubicacion
+       AND s.id_producto  = d.id_producto
+     WHERE d.id_conteo = p_id_conteo
+  ) LOOP
+    DECLARE
+      v_diff_llenos NUMBER := r.llenos - r.llenos_actual;
+      v_diff_vacios NUMBER := r.vacios - r.vacios_actual;
+    BEGIN
+      MERGE INTO stock_ubicacion su
+      USING dual
+         ON (su.id_ubicacion = v_id_ubicacion AND su.id_producto = r.id_producto)
+      WHEN MATCHED THEN
+        UPDATE SET su.llenos = r.llenos,
+                   su.vacios = r.vacios,
+                   su.fecha_actualizacion = SYSTIMESTAMP
+      WHEN NOT MATCHED THEN
+        INSERT (id_ubicacion, id_producto, llenos, vacios, fecha_actualizacion)
+        VALUES (v_id_ubicacion, r.id_producto, r.llenos, r.vacios, SYSTIMESTAMP);
+
+      IF v_diff_llenos <> 0 THEN
+        INSERT INTO movimiento_stock (fecha, tipo, id_ubicacion_desde, id_ubicacion_hasta,
+                                      id_producto, cantidad, es_lleno, ref_tipo, ref_id)
+        VALUES (SYSTIMESTAMP, 'CONTEO', v_id_ubicacion, v_id_ubicacion,
+                r.id_producto, v_diff_llenos, 'S', 'CONTEO_INV', p_id_conteo);
+      END IF;
+
+      IF v_diff_vacios <> 0 THEN
+        INSERT INTO movimiento_stock (fecha, tipo, id_ubicacion_desde, id_ubicacion_hasta,
+                                      id_producto, cantidad, es_lleno, ref_tipo, ref_id)
+        VALUES (SYSTIMESTAMP, 'CONTEO', v_id_ubicacion, v_id_ubicacion,
+                r.id_producto, v_diff_vacios, 'N', 'CONTEO_INV', p_id_conteo);
+      END IF;
+    END;
+  END LOOP;
+
+  UPDATE conteo_inv_cab
+     SET confirmado = 'S'
+   WHERE id_conteo = p_id_conteo;
+END;
+      ]]>
+    </sql>
+  </changeSet>
+</databaseChangeLog>

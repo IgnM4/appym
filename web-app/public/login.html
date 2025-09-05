@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="loginTitle">Login</title>
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <script type="module" src="js/auth.js"></script>
+  <script src="js/i18n.js" defer></script>
+</head>
+<body class="login">
+  <form id="loginForm" class="card fade-in" role="form" aria-labelledby="loginTitle">
+    <h2 id="loginTitle" data-i18n="loginTitle">Iniciar sesión</h2>
+    <label data-i18n="user">Usuario
+      <input type="text" id="user" required aria-label="usuario" />
+    </label>
+    <label data-i18n="password">Contraseña
+      <input type="password" id="pass" required aria-label="contraseña" />
+    </label>
+    <label data-i18n="role">Rol
+      <select id="role" aria-label="rol">
+        <option value="admin" data-i18n="admin">Admin</option>
+        <option value="ventas" data-i18n="sales">Ventas</option>
+      </select>
+    </label>
+    <button type="submit" class="btn" data-i18n="enter">Entrar</button>
+  </form>
+</body>
+</html>

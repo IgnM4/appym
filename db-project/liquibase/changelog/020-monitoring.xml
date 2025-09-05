@@ -1,0 +1,18 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="020-monitoring" author="sgbd" context="dev" runOnChange="true">
+    <sqlFile path="../../scripts/check_jobs.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             endDelimiter=";"
+             stripComments="true"/>
+    <rollback>
+      <sql>/* no-op */</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

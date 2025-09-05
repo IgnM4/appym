@@ -1,0 +1,20 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="029-venta-idempotencia" author="sgbd" runOnChange="true">
+    <sqlFile path="../../ddl/29_venta_idempotencia.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             endDelimiter="/"
+             stripComments="false"/>
+    <rollback>
+      <sql>DROP INDEX uq_mov_venta_unico;</sql>
+      <sql>DROP INDEX uq_pend_vacio_activo;</sql>
+      <sql>UPDATE boleta_venta SET inventario_impactado = 'N';</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

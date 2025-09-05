@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <!-- Crea la vista diaria solo si existe la MV -->
+  <changeSet id="017a-view-kpi-ventas-diarias" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_DIARIAS'
+      </sqlCheck>
+    </preConditions>
+
+    <sqlFile
+      path="../../ddl/17a_view_kpi_ventas_diarias.sql"
+      relativeToChangelogFile="true"
+      splitStatements="true"
+      endDelimiter=";"
+      encoding="UTF-8"/>
+
+    <rollback>
+      <sql>DROP VIEW v_kpi_ventas_diarias;</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- Crea la vista por producto solo si existe la MV -->
+  <changeSet id="017b-view-kpi-ventas-por-producto" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+    </preConditions>
+
+    <sqlFile
+      path="../../ddl/17b_view_kpi_ventas_por_producto.sql"
+      relativeToChangelogFile="true"
+      splitStatements="true"
+      endDelimiter=";"
+      encoding="UTF-8"/>
+
+    <rollback>
+      <sql>DROP VIEW v_kpi_ventas_por_producto;</sql>
+    </rollback>
+  </changeSet>
+
+  <changeSet id="017c-view-kpi-vpp-create-if-mv" author="sgbd" context="!admin">
+  <preConditions onFail="MARK_RAN">
+    <sqlCheck expectedResult="1">
+      SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+    </sqlCheck>
+    <not>
+      <viewExists viewName="V_KPI_VENTAS_POR_PRODUCTO"/>
+    </not>
+  </preConditions>
+
+  <sql>
+    CREATE OR REPLACE VIEW v_kpi_ventas_por_producto AS
+    SELECT
+      sku,
+      nombre,
+      unidades_vendidas,
+      monto_vendido,
+      costo_estimado,
+      utilidad_estimada
+    FROM mv_ventas_por_producto
+  </sql>
+
+  <rollback>
+    <sql>DROP VIEW v_kpi_ventas_por_producto</sql>
+  </rollback>
+</changeSet>
+
+</databaseChangeLog>

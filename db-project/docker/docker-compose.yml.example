@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  oracle-xe:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-xe
+    ports:
+      - "1521:1521"   # Oracle
+      - "5500:5500"   # EM Express
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-change_me}
+      ORACLE_DATABASE: "XEPDB1"
+      APP_USER: ${DB_USER:-app_user}
+      APP_USER_PASSWORD: ${DB_PASSWORD:-change_me}
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "echo 'select 1 from dual;' | sqlplus -s / as sysdba"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+volumes:
+  oracle-data:

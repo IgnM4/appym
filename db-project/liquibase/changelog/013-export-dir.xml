@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!-- 013a: crear DIRECTORYs (solo admin) -->
+  <changeSet id="013a-export-dir-admin-inline" author="sgbd" context="admin">
+    <preConditions onFail="MARK_RAN">
+      <!-- Si ya existen ambos, no hacer nada -->
+      <sqlCheck expectedResult="2">
+        SELECT COUNT(*) FROM all_directories
+         WHERE directory_name IN ('IMPORT_DIR','EXPORT_DIR')
+      </sqlCheck>
+    </preConditions>
+    <comment>Rutas Linux dentro del contenedor Oracle XE</comment>
+    <sql splitStatements="true">
+      CREATE OR REPLACE DIRECTORY IMPORT_DIR AS '/opt/oracle/admin/pym/import';
+      CREATE OR REPLACE DIRECTORY EXPORT_DIR AS '/opt/oracle/admin/pym/export';
+    </sql>
+    <rollback>
+      <sql>DROP DIRECTORY IMPORT_DIR</sql>
+      <sql>DROP DIRECTORY EXPORT_DIR</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 013b: otorgar permisos a APP_PYME (solo admin) -->
+  <changeSet id="013b-export-dir-grants-admin-inline" author="sgbd" context="admin">
+    <preConditions onFail="MARK_RAN">
+      <!-- Si APP_PYME ya tiene ambos permisos, saltar -->
+      <sqlCheck expectedResult="2">
+        SELECT COUNT(*) FROM all_tab_privs
+         WHERE table_name IN ('IMPORT_DIR','EXPORT_DIR')
+           AND privilege IN ('READ','WRITE')
+           AND grantee = 'APP_PYME'
+      </sqlCheck>
+    </preConditions>
+    <sql splitStatements="true">
+      GRANT READ, WRITE ON DIRECTORY IMPORT_DIR TO APP_PYME;
+      GRANT READ, WRITE ON DIRECTORY EXPORT_DIR TO APP_PYME;
+    </sql>
+    <rollback>
+      <sql>REVOKE READ, WRITE ON DIRECTORY IMPORT_DIR FROM APP_PYME</sql>
+      <sql>REVOKE READ, WRITE ON DIRECTORY EXPORT_DIR FROM APP_PYME</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 013c: modo no-admin: validar que el usuario actual puede usar los DIRECTORY -->
+  <changeSet id="013c-export-dir-nonadmin-assert" author="sgbd" context="!admin">
+    <!-- Si el usuario actual YA es dueño de ambos directory, o YA tiene permisos READ/WRITE,
+         simplemente marcar como ejecutado y continuar. -->
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <!-- Caso 1: el usuario actual es el owner de ambos -->
+        <sqlCheck expectedResult="2">
+          SELECT COUNT(*) FROM all_directories
+           WHERE directory_name IN ('IMPORT_DIR','EXPORT_DIR') AND owner = USER
+        </sqlCheck>
+        <!-- Caso 2: el usuario actual ya tiene permisos en ambos -->
+        <sqlCheck expectedResult="2">
+          SELECT COUNT(*) FROM all_tab_privs
+           WHERE table_name IN ('IMPORT_DIR','EXPORT_DIR')
+             AND privilege IN ('READ','WRITE')
+             AND grantee = USER
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <!-- No-op: marcamos el changeSet como aplicado si las precondiciones se cumplen -->
+    <sql splitStatements="false">BEGIN NULL; END;</sql>
+  </changeSet>
+
+</databaseChangeLog>

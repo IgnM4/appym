@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="031-trigger-boleta-usuario" author="sgbd">
+    <sqlFile path="../../ddl/31_trigger_boleta_usuario.sql"
+             relativeToChangelogFile="true"
+             splitStatements="false"
+             endDelimiter="/"/>
+    <rollback>
+      <sql endDelimiter="/">DROP TRIGGER trg_boleta_set_usuario</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

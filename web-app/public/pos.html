@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>POS - Ventas</title>
+  <link rel="stylesheet" href="pos.css" />
+  <script src="js/metrics.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Ventas</h1>
+  </header>
+  <main>
+    <div id="mensaje"></div>
+    <section id="productos">
+      <input id="buscar" type="text" placeholder="Buscar producto..." />
+      <div id="lista-productos"></div>
+    </section>
+    <section id="carrito">
+      <h2>Carrito</h2>
+      <ul id="items-carrito"></ul>
+      <div id="total"></div>
+      <button id="procesar">Procesar Venta</button>
+    </section>
+  </main>
+  <script type="module" src="js/pos.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="CONFIGDIR">
+      <Component Id="Cmp.AppProperties" Guid="*">
+        <File Id="Fil.app.properties" Source="$(var.SourceDir)\\config_templates\\app.properties.example" Name="app.properties"  KeyPath="yes" NeverOverwrite="yes" />
+      </Component>
+      <Component Id="Cmp.Env" Guid="*">
+        <File Id="Fil.env" Source="$(var.SourceDir)\\config_templates\\server.env.example" Name=".env" KeyPath="yes" NeverOverwrite="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.Config">
+      <ComponentRef Id="Cmp.AppProperties" />
+      <ComponentRef Id="Cmp.Env" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

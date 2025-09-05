@@ -1,0 +1,142 @@
+:root {
+  --orange: #F47C21;
+  --blue: #0033A0;
+  --gray-light: #F2F2F2;
+  --gray-dark: #444444;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease both;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  background: var(--gray-light);
+  color: var(--gray-dark);
+}
+
+:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Welcome and login */
+.welcome, .login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.welcome-container, .card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card label {
+  display: block;
+  margin: 10px 0;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--orange);
+  color: #fff;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--blue);
+  transform: translateY(-2px);
+}
+
+/* Dashboard layout */
+.dashboard .sidebar {
+  background: var(--blue);
+  color: #fff;
+  padding: 20px;
+  min-width: 200px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.dashboard .sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dashboard .sidebar a {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 8px 0;
+}
+
+.dashboard .sidebar a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.dashboard main {
+  margin-left: 220px;
+  padding: 20px;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+/* Existing KPI styles */
+nav { margin: 10px 0; }
+canvas { max-width: 100%; margin: 20px 0; }
+table { border-collapse: collapse; width: 100%; }
+td, th { border: 1px solid #ccc; padding: 4px 8px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.form-grid input,
+.form-grid select {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.hidden { display: none; }
+
+table { margin-top: 10px; }
+
+.msg { margin-top: 10px; }
+.msg.success { color: green; }
+.msg.info { color: #555; }
+.msg.error { color: red; }
+
+.metrics { font-size: 0.8em; margin-top: 10px; }

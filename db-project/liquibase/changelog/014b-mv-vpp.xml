@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <!-- 014b1: crea MV desde modelo BOLETA_* si existe y aún no hay MV -->
+  <changeSet id="014b1-mv-vpp-desde-boleta" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+      <tableExists tableName="BOLETA_VENTA"/>
+      <tableExists tableName="BOLETA_ITEM"/>
+    </preConditions>
+
+    <sql>
+      CREATE MATERIALIZED VIEW mv_ventas_por_producto
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        vi.sku,
+        p.nombre,
+        SUM(vi.cantidad)                   AS unidades_vendidas,
+        SUM(vi.total)                      AS monto_vendido,
+        SUM(vi.cantidad * NVL(p.costo,0))  AS costo_estimado,
+        SUM(vi.total) - SUM(vi.cantidad * NVL(p.costo,0)) AS utilidad_estimada
+      FROM boleta_item vi
+      JOIN producto p     ON p.sku = vi.sku
+      JOIN boleta_venta b ON b.id_boleta = vi.id_boleta
+      WHERE b.estado = 'PAGADA'
+      GROUP BY vi.sku, p.nombre
+    </sql>
+
+    <sql>CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku)</sql>
+
+    <rollback>
+      <sql>DROP INDEX ix_mv_vpp__sku</sql>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 014b2: crea MV desde modelo VENTA_* si existe y aún no hay MV -->
+  <changeSet id="014b2-mv-vpp-desde-venta" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+      <tableExists tableName="VENTA"/>
+      <tableExists tableName="VENTA_ITEM"/>
+    </preConditions>
+
+    <sql>
+      CREATE MATERIALIZED VIEW mv_ventas_por_producto
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        vi.sku,
+        p.nombre,
+        SUM(vi.cantidad)                   AS unidades_vendidas,
+        SUM(vi.total)                      AS monto_vendido,
+        SUM(vi.cantidad * NVL(p.costo,0))  AS costo_estimado,
+        SUM(vi.total) - SUM(vi.cantidad * NVL(p.costo,0)) AS utilidad_estimada
+      FROM venta_item vi
+      JOIN producto p ON p.sku = vi.sku
+      JOIN venta v    ON v.id_venta = vi.id_venta
+      WHERE v.estado = 'PAGADA'
+      GROUP BY vi.sku, p.nombre
+    </sql>
+
+    <sql>CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku)</sql>
+
+    <rollback>
+      <sql>DROP INDEX ix_mv_vpp__sku</sql>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- Reintento seguro cuando ya existe BOLETA_ITEM -->
+<changeSet id="014b3-mv-vpp-desde-boleta-retry" author="sgbd" context="!admin">
+  <preConditions onFail="CONTINUE">
+    <tableExists tableName="BOLETA_VENTA"/>
+    <tableExists tableName="BOLETA_ITEM"/>
+  </preConditions>
+
+  <sql>
+    CREATE MATERIALIZED VIEW mv_ventas_por_producto
+    BUILD IMMEDIATE
+    REFRESH COMPLETE ON DEMAND
+    AS
+    SELECT
+      vi.sku,
+      p.nombre,
+      SUM(vi.cantidad)                   AS unidades_vendidas,
+      SUM(vi.total)                      AS monto_vendido,
+      SUM(vi.cantidad * NVL(p.costo,0))  AS costo_estimado,
+      SUM(vi.total) - SUM(vi.cantidad * NVL(p.costo,0)) AS utilidad_estimada
+    FROM boleta_item vi
+    JOIN producto p     ON p.sku = vi.sku
+    JOIN boleta_venta b ON b.id_boleta = vi.id_boleta
+    WHERE b.estado = 'PAGADA'
+    GROUP BY vi.sku, p.nombre
+  </sql>
+
+  <sql>CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku)</sql>
+
+  <rollback>
+    <sql>DROP INDEX ix_mv_vpp__sku</sql>
+    <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto</sql>
+  </rollback>
+</changeSet>
+
+ <!-- Crea MV_VENTAS_POR_PRODUCTO usando BOLETA_VENTA_DETALLE -->
+  <changeSet id="014b4-mv-vpp-boleta-detalle" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <!-- Solo si NO existe todavía -->
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+      <!-- Y si existen las tablas reales -->
+      <tableExists tableName="BOLETA_VENTA_DETALLE"/>
+      <tableExists tableName="PRODUCTO"/>
+      <tableExists tableName="BOLETA_VENTA"/>
+    </preConditions>
+
+    <sql splitStatements="true" endDelimiter=";">
+      CREATE MATERIALIZED VIEW mv_ventas_por_producto
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        p.sku,
+        p.nombre,
+        SUM(d.cantidad)                               AS unidades_vendidas,
+        SUM(d.subtotal)                               AS monto_vendido,
+        SUM(d.cantidad * NVL(p.costo,0))              AS costo_estimado,
+        SUM(d.subtotal) - SUM(d.cantidad * NVL(p.costo,0)) AS utilidad_estimada
+      FROM boleta_venta_detalle d
+      JOIN producto p     ON p.id_producto = d.id_producto
+      JOIN boleta_venta b ON b.id_boleta   = d.id_boleta
+      WHERE b.estado = 'PAGADA'
+      GROUP BY p.sku, p.nombre;
+
+      CREATE INDEX ix_mv_vpp__sku ON mv_ventas_por_producto(sku);
+    </sql>
+
+    <rollback>
+      <sql>DROP INDEX ix_mv_vpp__sku;</sql>
+      <sql>DROP MATERIALIZED VIEW mv_ventas_por_producto;</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- (Opcional) crea la vista KPI si aún no existe pero ya existe la MV -->
+  <changeSet id="017d-view-kpi-vpp-if-mv" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+    </preConditions>
+    <sql splitStatements="true" endDelimiter=";">
+      CREATE OR REPLACE VIEW v_kpi_ventas_por_producto AS
+      SELECT
+        sku,
+        nombre,
+        unidades_vendidas,
+        monto_vendido,
+        costo_estimado,
+        utilidad_estimada
+      FROM mv_ventas_por_producto;
+    </sql>
+    <rollback>
+      <sql>DROP VIEW v_kpi_ventas_por_producto;</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

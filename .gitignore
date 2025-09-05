@@ -1,0 +1,28 @@
+# === Runtime / Oracle ===
+oradata/
+oracle_export/*
+!oracle_export/.gitkeep
+oracle_import/*
+!oracle_import/.gitkeep
+
+# CSV/exports y backups
+*.csv
+*.dmp
+*.log
+
+# Entornos / secretos
+.env
+*.env.local
+credenciales.txt
+liquibase-admin.properties   # contiene credenciales sensibles
+
+# Node / builds
+**/node_modules/
+**/dist/
+**/build/
+
+# Otros
+**/target/
+**/.DS_Store
+.vscode/
+.idea/

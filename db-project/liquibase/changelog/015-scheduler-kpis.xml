@@ -1,0 +1,28 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="015-scheduler-kpis" author="sgbd">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT CASE WHEN EXISTS (
+          SELECT 1 FROM SESSION_PRIVS WHERE PRIVILEGE = 'CREATE JOB'
+        ) THEN 1 ELSE 0 END AS ok FROM dual
+      </sqlCheck>
+    </preConditions>
+    <sqlFile path="../../ddl/15_scheduler_kpis.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             endDelimiter="/"/>
+    <rollback>
+      <sql>DROP PROCEDURE pr_refresh_kpi_mv;</sql>
+      <sql>
+BEGIN
+  DBMS_SCHEDULER.DROP_JOB('JOB_REFRESH_KPI_MV', TRUE);
+END;
+      </sql>
+    </rollback>
+  </changeSet>
+</databaseChangeLog>

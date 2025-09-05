@@ -1,0 +1,21 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="030-app-context-pkg" author="sgbd" runOnChange="true">
+    <sqlFile path="../../ddl/30_app_context_pkg.sql"
+             relativeToChangelogFile="true"
+             splitStatements="false"
+             endDelimiter="/"/>
+  </changeSet>
+
+  <changeSet id="030-app-context-createctx" author="sgbd">
+    <sqlFile path="../../ddl/30_app_context_createctx.sql"
+             relativeToChangelogFile="true"
+             splitStatements="false"
+             endDelimiter="/"/>
+  </changeSet>
+
+</databaseChangeLog>

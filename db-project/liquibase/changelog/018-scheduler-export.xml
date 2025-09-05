@@ -1,0 +1,21 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+  <changeSet id="018-scheduler-export" author="sgbd">
+    <sqlFile path="../../ddl/18_scheduler_export.sql"
+             relativeToChangelogFile="true"
+             endDelimiter="/"
+             splitStatements="true"
+             stripComments="false"/>
+    <rollback>
+      <sql>DROP PROCEDURE pr_export_kpis_daily;</sql>
+      <sql>
+BEGIN
+  DBMS_SCHEDULER.DROP_JOB('JOB_EXPORT_KPI_DAILY', TRUE);
+END;
+      </sql>
+    </rollback>
+  </changeSet>
+</databaseChangeLog>

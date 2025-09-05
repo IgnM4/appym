@@ -1,0 +1,5 @@
+[
+  {"sku":"5KG","nombre":"Gas 5KG","precio":5000,"stock":5},
+  {"sku":"11KG","nombre":"Gas 11KG","precio":10000,"stock":8},
+  {"sku":"15KG","nombre":"Gas 15KG","precio":15000,"stock":3}
+]

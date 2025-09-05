@@ -1,0 +1,9 @@
+node_modules
+dist
+npm-debug.log
+.env
+tests
+.git
+docker-compose.yml
+*.md
+vitest.config.ts

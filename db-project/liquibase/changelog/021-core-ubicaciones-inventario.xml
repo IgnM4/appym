@@ -1,0 +1,14 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+  <changeSet id="021-core-ubicaciones-inventario" author="sgbd">
+    <sqlFile path="../../ddl/021_core_ubicaciones_inventario.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             endDelimiter=";"
+             stripComments="true"
+             encoding="UTF-8"/>
+  </changeSet>
+</databaseChangeLog>

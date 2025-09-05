@@ -1,0 +1,12 @@
+CREATE OR REPLACE PACKAGE pkg_app_ctx AS
+  PROCEDURE set_usuario(p_id NUMBER);
+END;
+/
+
+CREATE OR REPLACE PACKAGE BODY pkg_app_ctx AS
+  PROCEDURE set_usuario(p_id NUMBER) IS
+  BEGIN
+    DBMS_SESSION.SET_CONTEXT('APP_PYME_CTX','ID_USUARIO', TO_CHAR(p_id));
+  END;
+END;
+/

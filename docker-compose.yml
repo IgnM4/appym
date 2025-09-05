@@ -1,0 +1,45 @@
+name: pym-main
+
+services:
+  db:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: app-oracle-xe-1
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    environment:
+      ORACLE_PASSWORD: "Admin#1234"      # contraseña de SYS/SYSTEM
+      ORACLE_DATABASE: "XEPDB1"          # PDB (por defecto XEPDB1)
+      APP_USER: "APP_PYME"               # usuario app
+      APP_USER_PASSWORD: "app_pyme_pass" # clave app
+      TZ: "America/Santiago"             # zona horaria del contenedor (opcional)
+    volumes:
+      - oradata:/opt/oracle/oradata
+      # Carpetas locales para compartir export/import con el host
+      - ./oracle_export:/opt/oracle/admin/pym/export
+      - ./oracle_import:/opt/oracle/admin/pym/import
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "healthcheck.sh"]
+      interval: 15s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+
+  # Descomenta cuando tengas la API lista (con Instant Client):
+  # api:
+  #   build: ./apps/api
+  #   environment:
+  #     PORT: "4000"
+  #     DB_USER: "APP_PYME"
+  #     DB_PASSWORD: "app_pyme_pass"
+  #     DB_CONNECT: "db:1521/XEPDB1"   # host:puerto/PDB dentro de la red de docker
+  #     ALLOWED_ORIGINS: "http://localhost:5173"
+  #   ports:
+  #     - "4000:4000"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+volumes:
+  oradata:

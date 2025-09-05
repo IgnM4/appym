@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- Minimal components and placeholders for harvested files -->
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="Cmp.NssmExe" Guid="*">
+        <File Id="Fil.nssm.exe" Source="$(var.SourceDir)\third_party\nssm\nssm.exe" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="Dir.Oracle" Name="oracle">
+        <Directory Id="Dir.OracleInstantClient" Name="instantclient">
+          <Component Id="Cmp.OracleInstantClientPlaceholder" Guid="*">
+            <File Id="Fil.OracleInstantClientPlaceholder" Source="$(var.SourceDir)\third_party\oracle\instantclient\instantclient.txt" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+
+
+  <Fragment>
+    <DirectoryRef Id="LOGSDIR">
+      <Component Id="Cmp.LogsFolder" Guid="*">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveLogsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\\AplicacionPyme" Name="logsfolder" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.Api">
+      <ComponentRef Id="Cmp.NssmExe" />
+      <!-- Components harvested into CG.Api will be referenced here -->
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.Desktop">
+      <!-- Components harvested into CG.Desktop will be referenced here -->
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.Logs">
+      <ComponentRef Id="Cmp.LogsFolder" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.OracleClient">
+      <ComponentRef Id="Cmp.OracleInstantClientPlaceholder" />
+      <!-- Components harvested into CG.OracleClient will be referenced here -->
+    </ComponentGroup>
+  </Fragment>
+</Wix>

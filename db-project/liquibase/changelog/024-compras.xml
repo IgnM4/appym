@@ -1,0 +1,26 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <!-- DDL: tablas/índices/FKs -->
+  <changeSet id="024-compras-ddl" author="sgbd">
+    <!-- Solo ejecutar si NO existen ambas tablas -->
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not><tableExists tableName="COMPRA"/></not>
+        <not><tableExists tableName="COMPRA_DET"/></not>
+      </and>
+    </preConditions>
+    <sqlFile path="../../ddl/024_compras.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <!-- PL/SQL: procedure -->
+  <changeSet id="024-compras-proc" author="sgbd" runOnChange="true">
+    <sqlFile path="../../ddl/024_compras_proc.sql"
+             relativeToChangelogFile="true"
+             splitStatements="false"
+             stripComments="false"/>
+  </changeSet>
+</databaseChangeLog>

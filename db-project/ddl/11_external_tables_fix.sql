@@ -1,0 +1,107 @@
+-- External tables SIN SKIP 1; la cabecera se filtra en SELECT del import
+CREATE TABLE ext_proveedores (
+  rut            VARCHAR2(30),
+  razon_social   VARCHAR2(200),
+  giro           VARCHAR2(200),
+  telefono       VARCHAR2(50),
+  email          VARCHAR2(200),
+  direccion      VARCHAR2(300),
+  activo         VARCHAR2(1)
+)
+ORGANIZATION EXTERNAL (
+  TYPE ORACLE_LOADER
+  DEFAULT DIRECTORY IMPORT_DIR
+  ACCESS PARAMETERS (
+    RECORDS DELIMITED BY NEWLINE
+    CHARACTERSET AL32UTF8
+    BADFILE 'ext_proveedores.bad'
+    LOGFILE 'ext_proveedores.log'
+    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+    MISSING FIELD VALUES ARE NULL
+  )
+  LOCATION ('proveedores.csv')
+) REJECT LIMIT UNLIMITED;
+
+CREATE TABLE ext_productos (
+  sku           VARCHAR2(40),
+  nombre        VARCHAR2(200),
+  formato       VARCHAR2(10),
+  unidad_medida VARCHAR2(10),
+  costo         VARCHAR2(40),
+  precio        VARCHAR2(40),
+  imagen_url    VARCHAR2(300),
+  activo        VARCHAR2(1)
+)
+ORGANIZATION EXTERNAL (
+  TYPE ORACLE_LOADER
+  DEFAULT DIRECTORY IMPORT_DIR
+  ACCESS PARAMETERS (
+    RECORDS DELIMITED BY NEWLINE
+    CHARACTERSET AL32UTF8
+    BADFILE 'ext_productos.bad'
+    LOGFILE 'ext_productos.log'
+    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+    MISSING FIELD VALUES ARE NULL
+  )
+  LOCATION ('productos.csv')
+) REJECT LIMIT UNLIMITED;
+
+CREATE TABLE ext_stock_inicial (
+  sku            VARCHAR2(40),
+  stock_actual   VARCHAR2(40),
+  stock_minimo   VARCHAR2(40)
+)
+ORGANIZATION EXTERNAL (
+  TYPE ORACLE_LOADER
+  DEFAULT DIRECTORY IMPORT_DIR
+  ACCESS PARAMETERS (
+    RECORDS DELIMITED BY NEWLINE
+    CHARACTERSET AL32UTF8
+    BADFILE 'ext_stock_inicial.bad'
+    LOGFILE 'ext_stock_inicial.log'
+    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+    MISSING FIELD VALUES ARE NULL
+  )
+  LOCATION ('stock_inicial.csv')
+) REJECT LIMIT UNLIMITED;
+
+CREATE TABLE ext_clientes (
+  rut         VARCHAR2(30),
+  nombre      VARCHAR2(200),
+  telefono    VARCHAR2(50),
+  email       VARCHAR2(200),
+  direccion   VARCHAR2(300),
+  activo      VARCHAR2(1)
+)
+ORGANIZATION EXTERNAL (
+  TYPE ORACLE_LOADER
+  DEFAULT DIRECTORY IMPORT_DIR
+  ACCESS PARAMETERS (
+    RECORDS DELIMITED BY NEWLINE
+    CHARACTERSET AL32UTF8
+    BADFILE 'ext_clientes.bad'
+    LOGFILE 'ext_clientes.log'
+    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+    MISSING FIELD VALUES ARE NULL
+  )
+  LOCATION ('clientes.csv')
+) REJECT LIMIT UNLIMITED;
+
+CREATE TABLE ext_precios (
+  sku    VARCHAR2(40),
+  tipo   VARCHAR2(10),
+  precio VARCHAR2(40)
+)
+ORGANIZATION EXTERNAL (
+  TYPE ORACLE_LOADER
+  DEFAULT DIRECTORY IMPORT_DIR
+  ACCESS PARAMETERS (
+    RECORDS DELIMITED BY NEWLINE
+    CHARACTERSET AL32UTF8
+    BADFILE 'ext_precios.bad'
+    LOGFILE 'ext_precios.log'
+    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+    MISSING FIELD VALUES ARE NULL
+  )
+  LOCATION ('precios.csv')
+) REJECT LIMIT UNLIMITED;

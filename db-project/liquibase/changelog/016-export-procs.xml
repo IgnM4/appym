@@ -1,0 +1,18 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="016-export-procs" author="sgbd">
+    <sqlFile path="../../ddl/13b_export_procs.sql"
+             relativeToChangelogFile="true"
+             endDelimiter="/"
+             splitStatements="true"
+             stripComments="false"/>
+    <rollback>
+      <sql>DROP PROCEDURE pr_export_ventas_diarias;</sql>
+      <sql>DROP PROCEDURE pr_export_ventas_por_producto;</sql>
+    </rollback>
+  </changeSet>
+</databaseChangeLog>

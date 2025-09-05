@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <Fragment Id="ServiceActions">
+  <Property Id="ORACLE_PATH" Value=""/>
+  <CustomAction Id="CA.SetOraclePath" Property="ORACLE_PATH" Value="\r\nPATH=%PATH%;[INSTALLDIR]oracle\instantclient"/>
+
+  <Fragment>
+
+    <!-- Verify required files exist -->
+    <util:WixQuietExec Id="CA.VerifyServiceFiles"
+      Command='cmd /c if exist "[INSTALLDIR]node\\node.exe" (if exist "[INSTALLDIR]server\\dist\\app.js" (exit 0) else (echo Missing server\\dist\\app.js && exit 1)) else (echo Missing node\\node.exe && exit 1)'
+      Execute="immediate" Return="check"/>
+
+    <!-- Install service using nssm -->
+    <util:WixQuietExec Id="CA.InstallService"
+      Command='"[INSTALLDIR]nssm.exe" install AplicacionPymeAPI "[INSTALLDIR]node\\node.exe" "[INSTALLDIR]server\\dist\\app.js"'
+      Execute="deferred" Impersonate="no" Return="check"/>
+
+    <!-- Configure directory and logs -->
+    <util:WixQuietExec Id="CA.SetServiceDirectory"
+      Command='"[INSTALLDIR]nssm.exe" set AplicacionPymeAPI AppDirectory "[INSTALLDIR]"'
+      Execute="deferred" Impersonate="no" Return="check"/>
+
+    <util:WixQuietExec Id="CA.SetServiceLogs"
+      Command='cmd /c ""[INSTALLDIR]nssm.exe" set AplicacionPymeAPI AppStdout "[LOGSDIR]api.log" && "[INSTALLDIR]nssm.exe" set AplicacionPymeAPI AppStderr "[LOGSDIR]api-error.log" && "[INSTALLDIR]nssm.exe" set AplicacionPymeAPI AppRotateFiles 1"'
+      Execute="deferred" Impersonate="no" Return="check"/>
+
+    <!-- Configure environment variables -->
+    <util:WixQuietExec Id="CA.SetServiceEnv"
+      Command='"[INSTALLDIR]nssm.exe" set AplicacionPymeAPI AppEnvironmentExtra "DB_USER=[DB_USER]\r\nDB_PASSWORD=[DB_PASSWORD]\r\nDB_CONNECT_STRING=[DB_CONNECT_STRING]\r\nAPI_PORT=[API_PORT]\r\nAPP_CONFIG_DIR=[CONFIGDIR][ORACLE_PATH]"'
+      Execute="deferred" Impersonate="no" Return="check"/>
+
+    <!-- Start service -->
+    <util:WixQuietExec Id="CA.StartService"
+      Command='"[INSTALLDIR]nssm.exe" start AplicacionPymeAPI'
+      Execute="deferred" Impersonate="no" Return="check"/>
+
+    <!-- Stop and remove service for uninstall -->
+    <util:WixQuietExec Id="CA.StopService"
+      Command='"[INSTALLDIR]nssm.exe" stop AplicacionPymeAPI'
+      Execute="deferred" Impersonate="no" Return="ignore"/>
+
+    <util:WixQuietExec Id="CA.RemoveService"
+      Command='"[INSTALLDIR]nssm.exe" remove AplicacionPymeAPI confirm'
+      Execute="deferred" Impersonate="no" Return="ignore"/>
+  </Fragment>
+</Wix>

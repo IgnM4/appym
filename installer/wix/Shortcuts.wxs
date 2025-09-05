@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Fragment>
+    <util:FileSearch Id="DesktopExeSearch" Path="[INSTALLDIR]desktop" Pattern="AplicacionPyme.exe" Variable="DESKTOPEXE" />
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="Cmp.DesktopShortcuts" Guid="*">
+        <Condition>DESKTOPEXE</Condition>
+        <RegistryValue Root="HKCU" Key="Software\\AplicacionPyme" Name="desktop" Type="integer" Value="1" KeyPath="yes"/>
+        <Shortcut Id="StartMenuShortcut" Name="AplicacionPyme" Directory="ProgramMenuDir" Target="[DESKTOPEXE]" WorkingDirectory="INSTALLDIR"/>
+        <Shortcut Id="DesktopShortcut" Name="AplicacionPyme" Directory="DesktopFolder" Target="[DESKTOPEXE]" WorkingDirectory="INSTALLDIR"/>
+        <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuDir" On="uninstall"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CG.Shortcuts">
+      <ComponentRef Id="Cmp.DesktopShortcuts"/>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

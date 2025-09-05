@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="AplicacionPyme" Version="1.0.0" Manufacturer="TuEmpresa" Language="1033" UpgradeCode="e18e4adb-79b7-43da-9c0b-d68fadbd7a96">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate />
+
+    <Property Id="DB_USER" Value="app_user" />
+    <Property Id="DB_PASSWORD" Value="change_me" />
+    <Property Id="DB_CONNECT_STRING" Value="localhost:1521/XEPDB1" />
+    <Property Id="API_PORT" Value="4000" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="AplicacionPyme">
+          <Directory Id="LOGSDIR" Name="logs" />
+        </Directory>
+      </Directory>
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="APPDATADIR" Name="AplicacionPyme">
+          <Directory Id="CONFIGDIR" Name="config" />
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuDir" Name="AplicacionPyme" />
+      </Directory>
+    </Directory>
+
+    <Feature Id="Desktop" Title="Desktop" Level="1">
+      <ComponentGroupRef Id="CG.Desktop" />
+      <ComponentGroupRef Id="CG.Shortcuts" />
+    </Feature>
+    <Feature Id="ApiService" Title="ApiService" Level="1">
+      <ComponentGroupRef Id="CG.Api" />
+
+      <ComponentGroupRef Id="CG.Logs" />
+
+      <ComponentGroupRef Id="CG.Config" />
+
+    </Feature>
+    <Feature Id="OracleClient" Title="OracleClient" Level="1">
+      <ComponentGroupRef Id="CG.OracleClient" />
+    </Feature>
+    <FragmentRef Id="ServiceActions" />
+
+    <InstallExecuteSequence>
+      <!-- Verify that service files exist before installing -->
+      <Custom Action="CA.VerifyServiceFiles" After="InstallFiles">NOT Installed AND &ApiService=3</Custom>
+      <!-- Install and configure service -->
+      <Custom Action="CA.InstallService" After="CA.VerifyServiceFiles">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.SetServiceDirectory" After="CA.InstallService">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.SetServiceLogs" After="CA.SetServiceDirectory">NOT Installed AND &ApiService=3</Custom>
+        <Custom Action="CA.SetOraclePath" Before="CA.SetServiceEnv">NOT Installed AND &ApiService=3 AND &OracleClient=3</Custom>
+      <Custom Action="CA.SetServiceEnv" After="CA.SetServiceLogs">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.StartService" After="CA.SetServiceEnv">NOT Installed AND &ApiService=3</Custom>
+
+      <!-- Stop and remove service on uninstall -->
+      <Custom Action="CA.StopService" Before="CA.RemoveService">REMOVE="ALL" AND ?ApiService=3</Custom>
+      <Custom Action="CA.RemoveService" Before="RemoveFiles">REMOVE="ALL" AND ?ApiService=3</Custom>
+    </InstallExecuteSequence>
+
+    <InstallExecuteSequence>
+      <!-- Verify that service files exist before installing -->
+      <Custom Action="CA.VerifyServiceFiles" After="InstallFiles">NOT Installed AND &ApiService=3</Custom>
+      <!-- Install and configure service -->
+      <Custom Action="CA.InstallService" After="CA.VerifyServiceFiles">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.SetServiceDirectory" After="CA.InstallService">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.SetServiceLogs" After="CA.SetServiceDirectory">NOT Installed AND &ApiService=3</Custom>
+        <Custom Action="CA.SetOraclePath" Before="CA.SetServiceEnv">NOT Installed AND &ApiService=3 AND &OracleClient=3</Custom>
+      <Custom Action="CA.SetServiceEnv" After="CA.SetServiceLogs">NOT Installed AND &ApiService=3</Custom>
+      <Custom Action="CA.StartService" After="CA.SetServiceEnv">NOT Installed AND &ApiService=3</Custom>
+
+      <!-- Stop and remove service on uninstall -->
+      <Custom Action="CA.StopService" Before="CA.RemoveService">REMOVE="ALL" AND ?ApiService=3</Custom>
+      <Custom Action="CA.RemoveService" Before="RemoveFiles">REMOVE="ALL" AND ?ApiService=3</Custom>
+    </InstallExecuteSequence>
+
+    <UIRef Id="WixUI_InstallDir" />
+  </Product>
+</Wix>

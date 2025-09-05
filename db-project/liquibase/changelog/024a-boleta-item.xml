@@ -1,0 +1,31 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                     http://www.liquibase.org/xml/ns/dbchangelog
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="024a-boleta-item" author="sgbd">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="BOLETA_ITEM"/>
+      </not>
+    </preConditions>
+
+    <sql>
+      CREATE TABLE boleta_item (
+        id_boleta  NUMBER       NOT NULL,
+        sku        VARCHAR2(40) NOT NULL,
+        cantidad   NUMBER(10,2) NOT NULL,
+        total      NUMBER(12,2) NOT NULL,
+        CONSTRAINT fk_bi_boleta
+          FOREIGN KEY (id_boleta) REFERENCES boleta_venta(id_boleta)
+      )
+    </sql>
+    <sql>CREATE INDEX ix_bi_boleta ON boleta_item(id_boleta)</sql>
+    <sql>CREATE INDEX ix_bi_sku    ON boleta_item(sku)</sql>
+
+    <rollback>
+      <sql>DROP TABLE boleta_item CASCADE CONSTRAINTS</sql>
+    </rollback>
+  </changeSet>
+</databaseChangeLog>

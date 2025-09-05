@@ -1,0 +1,11 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+  <changeSet id="020-conteos-diarios" author="sgbd">
+    <sqlFile path="../../ddl/020_conteos_diarios.sql"
+             relativeToChangelogFile="true"
+             endDelimiter="/"
+             splitStatements="true"
+             stripComments="false"/>
+  </changeSet>
+</databaseChangeLog>

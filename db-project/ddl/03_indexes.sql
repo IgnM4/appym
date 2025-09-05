@@ -1,0 +1,37 @@
+-- Búsquedas frecuentes
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_producto__nombre ON producto(nombre)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+-- (El índice en SKU lo aporta la UQ: UQ_PRODUCTO__SKU)
+
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_boleta__fecha ON boleta_venta(fecha)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_boleta__usuario ON boleta_venta(id_usuario_vende)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_fc__fecha ON factura_compra(fecha)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+-- Índices por FK
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_fc_det__fc ON factura_compra_detalle(id_factura_compra)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_fc_det__prod ON factura_compra_detalle(id_producto)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_bol_det__bol ON boleta_venta_detalle(id_boleta)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX ix_bol_det__prod ON boleta_venta_detalle(id_producto)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/

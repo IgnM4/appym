@@ -1,0 +1,26 @@
+{
+  "es": {
+    "welcome": "Bienvenido",
+    "loginLink": "Ingresar",
+    "loginTitle": "Iniciar sesión",
+    "user": "Usuario",
+    "password": "Contraseña",
+    "role": "Rol",
+    "admin": "Admin",
+    "sales": "Ventas",
+    "enter": "Entrar",
+    "offlineMsg": "Sin conexión. Intenta más tarde."
+  },
+  "en": {
+    "welcome": "Welcome",
+    "loginLink": "Login",
+    "loginTitle": "Sign in",
+    "user": "User",
+    "password": "Password",
+    "role": "Role",
+    "admin": "Admin",
+    "sales": "Sales",
+    "enter": "Enter",
+    "offlineMsg": "Offline. Try again later."
+  }
+}
