@@ -80,11 +80,29 @@
     </rollback>
   </changeSet>
 
-  <!-- Reintento seguro cuando ya existe BOLETA_ITEM -->
+<!-- Reintento idempotente:
+     - Si la MV ya existe ➜ MARK_RAN (no intenta crear nada)
+     - Si no existe, sólo corre cuando existen las tablas base -->
 <changeSet id="014b3-mv-vpp-desde-boleta-retry" author="sgbd" context="!admin">
-  <preConditions onFail="CONTINUE">
-    <tableExists tableName="BOLETA_VENTA"/>
-    <tableExists tableName="BOLETA_ITEM"/>
+  <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+    <and>
+      <!-- Requiere que NO exista la MV para poder ejecutar el changeset -->
+      <not>
+        <sqlCheck expectedResult="1">
+          SELECT CASE WHEN EXISTS (
+                   SELECT 1
+                   FROM user_mviews
+                   WHERE mview_name = 'MV_VENTAS_POR_PRODUCTO'
+                 )
+                 THEN 1 ELSE 0 END
+          FROM dual
+        </sqlCheck>
+      </not>
+
+      <!-- Y que existan las tablas base -->
+      <tableExists tableName="BOLETA_VENTA"/>
+      <tableExists tableName="BOLETA_ITEM"/>
+    </and>
   </preConditions>
 
   <sql>

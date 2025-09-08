@@ -1,0 +1,13 @@
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="037-funcs-real" author="sgbd" context="!admin">
+    <sqlFile path="../../ddl/12_rut_chile.sql" relativeToChangelogFile="true"
+             splitStatements="false" endDelimiter="/"/>
+    <sqlFile path="../../ddl/13_export_csv.sql" relativeToChangelogFile="true"
+             splitStatements="false" endDelimiter="/"/>
+  </changeSet>
+</databaseChangeLog>

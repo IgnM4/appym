@@ -1,36 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="
                      http://www.liquibase.org/xml/ns/dbchangelog
-                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
 
   <!-- Secuencia si no existe -->
   <changeSet id="019a-seq-boleta-numero" author="sgbd" context="!admin">
     <preConditions onFail="MARK_RAN">
-      <not><sequenceExists sequenceName="SEQ_BOLETA_NUMERO"/></not>
+      <not>
+        <sequenceExists sequenceName="SEQ_BOLETA_NUMERO" schemaName="${schemaName}"/>
+      </not>
     </preConditions>
-    <createSequence sequenceName="SEQ_BOLETA_NUMERO" startValue="1" incrementBy="1" cacheSize="20"/>
+
+    <createSequence sequenceName="SEQ_BOLETA_NUMERO"
+                    schemaName="${schemaName}"
+                    startValue="1"
+                    incrementBy="1"
+                    cacheSize="20"/>
     <rollback>
-      <dropSequence sequenceName="SEQ_BOLETA_NUMERO"/>
+      <dropSequence sequenceName="SEQ_BOLETA_NUMERO" schemaName="${schemaName}"/>
     </rollback>
   </changeSet>
 
-  <!-- Trigger si no existe -->
-  <changeSet id="019b-trg-boleta-set-numero" author="sgbd" context="!admin">
+  <!-- Trigger: usar endDelimiter="/" y splitStatements="false" -->
+  <changeSet id="019b-trg-boleta-set-numero" author="sgbd" context="!admin" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="0">
         SELECT COUNT(*) FROM user_triggers WHERE trigger_name = 'TRG_BOLETA_SET_NUMERO'
       </sqlCheck>
     </preConditions>
-    <sql>
+
+    <sql endDelimiter="/" splitStatements="false">
       CREATE OR REPLACE TRIGGER TRG_BOLETA_SET_NUMERO
-      BEFORE INSERT ON boleta_venta
+      BEFORE INSERT ON BOLETA_VENTA
       FOR EACH ROW
-      WHEN (NEW.numero IS NULL)
+      WHEN (new.NUMERO IS NULL)
       BEGIN
-        :NEW.numero := SEQ_BOLETA_NUMERO.NEXTVAL;
+        :NEW.NUMERO := SEQ_BOLETA_NUMERO.NEXTVAL;
       END;
     </sql>
+
     <rollback>
       <sql>DROP TRIGGER TRG_BOLETA_SET_NUMERO</sql>
     </rollback>

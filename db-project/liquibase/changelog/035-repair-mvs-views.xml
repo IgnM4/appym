@@ -8,13 +8,16 @@
 
   <!-- 035a: crea MV_VENTAS_DIARIAS si falta -->
   <changeSet id="035a-mv-vd-create-if-missing" author="sgbd" context="!admin">
+    <!-- Opción 2: aceptar el checksum anterior -->
+    <validCheckSum>9:69c1f102c9c3dd15e78171a1c216f202</validCheckSum>
+
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="0">
         SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_DIARIAS'
       </sqlCheck>
     </preConditions>
     <sql>
-      CREATE MATERIALIZED VIEW mv_ventas_diarias
+      CREATE MATERIALIZED VIEW MV_VENTAS_DIARIAS
       BUILD IMMEDIATE
       REFRESH COMPLETE ON DEMAND
       AS
@@ -27,22 +30,75 @@
        GROUP BY TRUNC(b.fecha)
     </sql>
     <rollback>
-      <sql>DROP MATERIALIZED VIEW mv_ventas_diarias</sql>
+      <sql>DROP MATERIALIZED VIEW MV_VENTAS_DIARIAS</sql>
     </rollback>
   </changeSet>
 
-  <!-- 035b: recompila MV_VENTAS_POR_PRODUCTO si existe -->
-  <changeSet id="035b-mv-vpp-compile-if-exists" author="sgbd" context="!admin">
+  <!-- 035b1: si existe MV_VENTAS_POR_PRODUCTO, dropear (Oracle no tiene CREATE OR REPLACE MV) -->
+  <changeSet id="035b1-mv-vpp-drop-if-exists" author="sgbd" context="!admin">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="1">
         SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
       </sqlCheck>
     </preConditions>
-    <sql>ALTER MATERIALIZED VIEW mv_ventas_por_producto COMPILE</sql>
+    <sql>DROP MATERIALIZED VIEW MV_VENTAS_POR_PRODUCTO</sql>
+  </changeSet>
+
+  <!-- 035b2: crear MV_VENTAS_POR_PRODUCTO con la definición correcta (usa DETALLE) -->
+  <changeSet id="035b2-mv-vpp-create" author="sgbd" context="!admin">
+    <sql>
+      CREATE MATERIALIZED VIEW MV_VENTAS_POR_PRODUCTO
+      BUILD IMMEDIATE
+      REFRESH COMPLETE ON DEMAND
+      AS
+      SELECT
+        p.sku,
+        p.nombre,
+        SUM(d.cantidad)                              AS unidades_vendidas,
+        SUM(d.subtotal)                              AS monto_vendido,
+        SUM(d.cantidad * NVL(p.costo, 0))            AS costo_estimado,
+        SUM(d.subtotal) - SUM(d.cantidad * NVL(p.costo, 0)) AS utilidad_estimada
+      FROM boleta_venta_detalle d
+      JOIN producto     p ON p.id_producto = d.id_producto
+      JOIN boleta_venta b ON b.id_boleta   = d.id_boleta
+      WHERE b.estado = 'PAGADA'
+      GROUP BY p.sku, p.nombre
+    </sql>
+    <rollback>
+      <sql>DROP MATERIALIZED VIEW MV_VENTAS_POR_PRODUCTO</sql>
+    </rollback>
+  </changeSet>
+
+  <!-- 035b3: índice sobre SKU si falta -->
+  <changeSet id="035b3-mv-vpp-index" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists indexName="IX_MV_VPP__SKU" tableName="MV_VENTAS_POR_PRODUCTO"/>
+      </not>
+    </preConditions>
+    <createIndex indexName="IX_MV_VPP__SKU" tableName="MV_VENTAS_POR_PRODUCTO">
+      <column name="SKU"/>
+    </createIndex>
+    <rollback>
+      <dropIndex indexName="IX_MV_VPP__SKU" tableName="MV_VENTAS_POR_PRODUCTO"/>
+    </rollback>
+  </changeSet>
+
+  <!-- 035b4: refresh de cortesía de la MV -->
+  <changeSet id="035b4-mv-vpp-refresh" author="sgbd" context="!admin">
+    <sql endDelimiter="/" splitStatements="false">
+      BEGIN
+        DBMS_MVIEW.REFRESH('MV_VENTAS_POR_PRODUCTO','C');
+      END;
+      /
+    </sql>
   </changeSet>
 
   <!-- 035c: crea vista v_kpi_ventas_diarias si falta y existe la MV -->
   <changeSet id="035c-view-kpi-vd-if-mv" author="sgbd" context="!admin">
+    <!-- Opción 2: aceptar el checksum anterior -->
+    <validCheckSum>9:3bc2f01e1dc7a436d2c4db4fcda7b07a</validCheckSum>
+
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="1">
@@ -54,17 +110,20 @@
       </and>
     </preConditions>
     <sql>
-      CREATE OR REPLACE VIEW v_kpi_ventas_diarias AS
+      CREATE OR REPLACE VIEW V_KPI_VENTAS_DIARIAS AS
       SELECT dia, total_ventas, total_neto, total_iva
-      FROM mv_ventas_diarias
+      FROM MV_VENTAS_DIARIAS
     </sql>
     <rollback>
-      <sql>DROP VIEW v_kpi_ventas_diarias</sql>
+      <sql>DROP VIEW V_KPI_VENTAS_DIARIAS</sql>
     </rollback>
   </changeSet>
 
   <!-- 035d: crea vista v_kpi_ventas_por_producto si falta y existe la MV -->
   <changeSet id="035d-view-kpi-vpp-if-mv" author="sgbd" context="!admin">
+    <!-- Opción 2: aceptar el checksum anterior -->
+    <validCheckSum>9:ee70f7464ccdbf0eb8498168bdcce0f1</validCheckSum>
+
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="1">
@@ -76,12 +135,12 @@
       </and>
     </preConditions>
     <sql>
-      CREATE OR REPLACE VIEW v_kpi_ventas_por_producto AS
+      CREATE OR REPLACE VIEW V_KPI_VENTAS_POR_PRODUCTO AS
       SELECT sku, nombre, unidades_vendidas, monto_vendido, costo_estimado, utilidad_estimada
-      FROM mv_ventas_por_producto
+      FROM MV_VENTAS_POR_PRODUCTO
     </sql>
     <rollback>
-      <sql>DROP VIEW v_kpi_ventas_por_producto</sql>
+      <sql>DROP VIEW V_KPI_VENTAS_POR_PRODUCTO</sql>
     </rollback>
   </changeSet>
 

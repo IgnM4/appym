@@ -3,7 +3,18 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="
                      http://www.liquibase.org/xml/ns/dbchangelog
-                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd"
+                   logicalFilePath="changelog-master.xml">
+
+  <!--
+    NOTA (punto 4):
+    Para evitar desalineamientos, abre cada archivo hijo e incorpora
+    logicalFilePath en la SU PROPIO <databaseChangeLog> así:
+
+      <databaseChangeLog ... logicalFilePath="changelog/014b-mv-vpp.xml">
+
+    Sugerencias de logicalFilePath por include al final del archivo.
+  -->
 
   <!-- Esquema por defecto (ajusta si usas otro) -->
   <property name="schemaName" value="APP_PYME"/>
@@ -89,7 +100,8 @@
   <changeSet id="006-triggers" author="sgbd">
     <sqlFile path="../ddl/07_triggers.sql"
              relativeToChangelogFile="true"
-             splitStatements="false"/>
+             splitStatements="false"
+             endDelimiter="/"/>
   </changeSet>
 
   <changeSet id="007-ext-tables" author="sgbd" context="dev">
@@ -191,39 +203,121 @@
   <changeSet id="012-rut-chile" author="sgbd">
     <sqlFile path="../ddl/12_rut_chile.sql"
              relativeToChangelogFile="true"
-             splitStatements="false"/>
+             splitStatements="false"
+             endDelimiter="/"/>
   </changeSet>
 
   <changeSet id="013-export-csv" author="sgbd">
     <sqlFile path="../ddl/13_export_csv.sql"
              relativeToChangelogFile="true"
-             splitStatements="false"/>
+             splitStatements="false"
+             endDelimiter="/"/>
   </changeSet>
 
-  <!-- Includes existentes -->
-  <include file="changelog/013-export-dir.xml"          relativeToChangelogFile="true"/>
-  <include file="changelog/014-mv-kpis.xml"             relativeToChangelogFile="true"/>
-  <include file="changelog/014b-mv-vpp.xml"             relativeToChangelogFile="true"/>
-  <include file="changelog/015-scheduler-kpis.xml"      relativeToChangelogFile="true"/>
-  <include file="changelog/016-export-procs.xml"        relativeToChangelogFile="true"/>
-  <include file="changelog/017-views-kpi.xml"           relativeToChangelogFile="true"/>
-  <include file="changelog/018-scheduler-export.xml"    relativeToChangelogFile="true"/>
-  <include file="changelog/019-indexes-perf.xml"        relativeToChangelogFile="true"/>
-  <include file="changelog/020-monitoring.xml"          relativeToChangelogFile="true"/>
+  <changeSet id="036-demo-seed-vpp" author="sgbd" context="demo">
+    <!-- Evita duplicar si ya hay detalle para esos SKUs -->
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0"><![CDATA[
+        SELECT CASE WHEN EXISTS (
+          SELECT 1
+          FROM boleta_venta_detalle d
+          JOIN producto p ON p.id_producto = d.id_producto
+          WHERE p.sku IN ('SKU-11KG','SKU-5KG')
+        ) THEN 1 ELSE 0 END FROM dual
+      ]]></sqlCheck>
+    </preConditions>
+
+    <sqlFile
+        path="seed_vpp_with_ctx_liquibase.sql"
+        relativeToChangelogFile="true"
+        splitStatements="false"
+        endDelimiter="/"/>
+  </changeSet>
+
+  <!-- Includes existentes (cada hijo DEBE declarar su logicalFilePath sugerido) -->
+  <!-- En cada archivo incluido, agrega logicalFilePath con el valor sugerido. -->
+  <include file="changelog/013-export-dir.xml"                 relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/013-export-dir.xml" -->
+
+  <include file="changelog/014-mv-kpis.xml"                    relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/014-mv-kpis.xml" -->
+
+  <include file="changelog/014b-mv-vpp.xml"                    relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/014b-mv-vpp.xml" -->
+
+  <include file="changelog/015-scheduler-kpis.xml"             relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/015-scheduler-kpis.xml" -->
+
+  <include file="changelog/016-export-procs.xml"               relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/016-export-procs.xml" -->
+
+  <include file="changelog/017-views-kpi.xml"                  relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/017-views-kpi.xml" -->
+
+  <include file="changelog/018-scheduler-export.xml"           relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/018-scheduler-export.xml" -->
+
+  <include file="changelog/019-indexes-perf.xml"               relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/019-indexes-perf.xml" -->
+
+  <include file="changelog/020-monitoring.xml"                 relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/020-monitoring.xml" -->
+
   <include file="changelog/021-core-ubicaciones-inventario.xml" relativeToChangelogFile="true"/>
-  <include file="changelog/022-conteos-diarios.xml"     relativeToChangelogFile="true"/>
-  <include file="changelog/023-pendientes-vacio.xml"    relativeToChangelogFile="true"/>
-  <include file="changelog/024-compras.xml"             relativeToChangelogFile="true"/>
-  <include file="changelog/025-ventas-ubicacion.xml"    relativeToChangelogFile="true"/>
-  <include file="changelog/026-caja-cuentas.xml"        relativeToChangelogFile="true"/>
-  <include file="changelog/027-lista-precios.xml"       relativeToChangelogFile="true"/>
-  <include file="changelog/028-geo-clientes.xml"        relativeToChangelogFile="true"/>
-  <include file="changelog/029-venta-idempotencia.xml"  relativeToChangelogFile="true"/>
-  <include file="changelog/030-app-context.xml"         relativeToChangelogFile="true"/>
-  <include file="changelog/031-trigger-boleta-usuario.xml" relativeToChangelogFile="true"/>
-  <include file="changelog/032-seed-precios-producto.xml"       relativeToChangelogFile="true"/>
-  <include file="changelog/033-seq-trg-boleta-numero.xml"       relativeToChangelogFile="true"/>
-  <include file="changelog/034-scheduler-timezone.xml"          relativeToChangelogFile="true"/>
-  <include file="changelog/035-repair-mvs-views.xml" relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/021-core-ubicaciones-inventario.xml" -->
+
+  <include file="changelog/022-conteos-diarios.xml"            relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/022-conteos-diarios.xml" -->
+
+  <include file="changelog/023-pendientes-vacio.xml"           relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/023-pendientes-vacio.xml" -->
+
+  <include file="changelog/024-compras.xml"                    relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/024-compras.xml" -->
+
+  <include file="changelog/025-ventas-ubicacion.xml"           relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/025-ventas-ubicacion.xml" -->
+
+  <include file="changelog/026-caja-cuentas.xml"               relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/026-caja-cuentas.xml" -->
+
+  <include file="changelog/027-lista-precios.xml"              relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/027-lista-precios.xml" -->
+
+  <include file="changelog/028-geo-clientes.xml"               relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/028-geo-clientes.xml" -->
+
+  <include file="changelog/029-venta-idempotencia.xml"         relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/029-venta-idempotencia.xml" -->
+
+  <include file="changelog/030-app-context.xml"                relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/030-app-context.xml" -->
+
+  <include file="changelog/031-trigger-boleta-usuario.xml"     relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/031-trigger-boleta-usuario.xml" -->
+
+  <include file="changelog/032-seed-precios-producto.xml"      relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/032-seed-precios-producto.xml" -->
+
+  <include file="changelog/034-scheduler-timezone.xml"         relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/034-scheduler-timezone.xml" -->
+
+  <include file="changelog/035-repair-mvs-views.xml"           relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/035-repair-mvs-views.xml" -->
+
+  <include file="changelog/035e-recreate-view-kpi-vpp.xml"     relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/035e-recreate-view-kpi-vpp.xml" -->
+
+  <include file="changelog/036b-demo-seed-cleanup.xml"         relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/036b-demo-seed-cleanup.xml" -->
+
+  <include file="changelog/036c-demo-reseed.xml"               relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/036c-demo-reseed.xml" -->
+
+  <include file="changelog/036d-scheduler-refresh-mvs.xml"     relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/036d-scheduler-refresh-mvs.xml" -->
+
+  <include file="changelog/037-funcs-real.xml"                 relativeToChangelogFile="true"/>
+  <!--  Sugerido en hijo: logicalFilePath="changelog/037-funcs-real.xml" -->
 
 </databaseChangeLog>
