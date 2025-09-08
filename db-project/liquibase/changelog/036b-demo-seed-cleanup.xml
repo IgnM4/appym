@@ -1,0 +1,56 @@
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!-- Limpia filas de demo (SKU-11KG / SKU-5KG) -->
+  <changeSet id="036b-demo-seed-cleanup" author="sgbd" context="demo">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT CASE WHEN EXISTS (
+          SELECT 1
+          FROM   boleta_venta_detalle d
+          JOIN   producto p ON p.id_producto = d.id_producto
+          WHERE  p.sku IN ('SKU-11KG','SKU-5KG')
+        ) THEN 1 ELSE 0 END FROM dual
+      </sqlCheck>
+    </preConditions>
+
+    <!-- Borra detalles de esas SKUs -->
+    <sql>
+      DELETE FROM boleta_venta_detalle d
+      WHERE EXISTS (
+        SELECT 1
+        FROM   producto p
+        WHERE  p.id_producto = d.id_producto
+        AND    p.sku IN ('SKU-11KG','SKU-5KG')
+      )
+    </sql>
+
+    <!-- Borra boletas que hayan quedado sin detalle -->
+    <sql>
+      DELETE FROM boleta_venta b
+      WHERE NOT EXISTS (
+        SELECT 1 FROM boleta_venta_detalle d
+        WHERE d.id_boleta = b.id_boleta
+      )
+    </sql>
+
+    <!-- Opcional: borrar también productos de demo -->
+    <!--
+    <sql>
+      DELETE FROM producto WHERE sku IN ('SKU-11KG','SKU-5KG')
+    </sql>
+    -->
+
+    <!-- Refresca la MV para reflejar la limpieza -->
+    <sql endDelimiter="/" splitStatements="false">
+      BEGIN
+        DBMS_MVIEW.REFRESH('MV_VENTAS_POR_PRODUCTO','C');
+      END;
+      /
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

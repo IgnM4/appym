@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd"
+  logicalFilePath="changelog/036d-scheduler-refresh-mvs.xml">
+
+  <!--
+    Job de refresh horario para las MVs de KPIs.
+    runOnChange="true" evita que aparezca pendiente en 'status' cada vez,
+    y solo se re-ejecutará si MODIFICAS el contenido de este changeSet.
+  -->
+  <changeSet id="036d-scheduler-refresh-mvs" author="sgbd" runOnChange="true">
+    <comment>Crear/actualizar JOB_REFRESH_MVS (refresh MVs cada hora) de forma idempotente</comment>
+
+    <sql splitStatements="false" endDelimiter="/">
+      <![CDATA[
+      DECLARE
+        v_cnt NUMBER;
+      BEGIN
+        SELECT COUNT(*) INTO v_cnt
+        FROM user_scheduler_jobs
+        WHERE job_name = 'JOB_REFRESH_MVS';
+
+        IF v_cnt > 0 THEN
+          DBMS_SCHEDULER.DROP_JOB('JOB_REFRESH_MVS', FORCE => TRUE);
+        END IF;
+
+        DBMS_SCHEDULER.CREATE_JOB(
+          job_name        => 'JOB_REFRESH_MVS',
+          job_type        => 'PLSQL_BLOCK',
+          job_action      => q'[BEGIN
+            DBMS_MVIEW.REFRESH('MV_VENTAS_POR_PRODUCTO','C');
+            DBMS_MVIEW.REFRESH('MV_VENTAS_DIARIAS','C');
+          END;]',
+          start_date      => SYSTIMESTAMP,
+          repeat_interval => 'FREQ=HOURLY;INTERVAL=1',
+          enabled         => TRUE,
+          comments        => 'Refresca MVs de KPIs cada hora'
+        );
+      END;
+      /
+      ]]>
+    </sql>
+
+    <rollback>
+      <sql>BEGIN DBMS_SCHEDULER.DROP_JOB('JOB_REFRESH_MVS', FORCE => TRUE); END;</sql>
+    </rollback>
+  </changeSet>
+</databaseChangeLog>

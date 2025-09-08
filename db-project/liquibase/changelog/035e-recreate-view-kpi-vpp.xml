@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!-- Re-crear la vista KPI si existe la MV (evita dependencia inválida) -->
+  <changeSet id="035e-recreate-view-kpi-vpp" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_mviews WHERE mview_name='MV_VENTAS_POR_PRODUCTO'
+      </sqlCheck>
+    </preConditions>
+
+    <sql>
+      CREATE OR REPLACE VIEW V_KPI_VENTAS_POR_PRODUCTO AS
+      SELECT sku, nombre, unidades_vendidas, monto_vendido, costo_estimado, utilidad_estimada
+      FROM MV_VENTAS_POR_PRODUCTO
+    </sql>
+
+    <rollback>
+      <sql>DROP VIEW V_KPI_VENTAS_POR_PRODUCTO</sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

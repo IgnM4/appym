@@ -1,0 +1,7 @@
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+SET SERVEROUTPUT ON
+BEGIN
+  PKG_APP_CTX.SET_ID_USUARIO(1); -- ajusta el ID si quieres
+END;
+/
+@/tmp/seed_vpp_sample_fix3.sql

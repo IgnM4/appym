@@ -1,0 +1,12 @@
+SET SERVEROUTPUT ON
+PROMPT Seteando contexto...
+BEGIN
+  PKG_APP_CTX.SET_ID_USUARIO(1);
+  DBMS_OUTPUT.PUT_LINE(
+    'APP_CTX='||NVL(SYS_CONTEXT('APP_CTX','ID_USUARIO'),'NULL')||
+    ' / APP_PYME_CTX='||NVL(SYS_CONTEXT('APP_PYME_CTX','ID_USUARIO'),'NULL')
+  );
+END;
+/
+PROMPT Ejecutando seed...
+@/tmp/seed_vpp_sample_fix3.sql

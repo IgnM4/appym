@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <!--
+    036c: Reseed de demo para KPIs de ventas por producto.
+    Opción A: mantener runAlways="true" pero hacer la siembra idempotente:
+      - Limpieza previa de boletas DEMO del día para SKUs ('SKU-11KG','SKU-5KG')
+      - Luego insertar una boleta y 2 ítems
+      - Refrescar MVs
+  -->
+  <changeSet id="036c-demo-reseed-vpp" author="sgbd" context="demo" runAlways="true">
+
+    <!-- 0) Limpieza idempotente del día actual para SKUs de demo -->
+    <sql endDelimiter="/" splitStatements="false">
+      DECLARE
+        TYPE t_ids IS TABLE OF NUMBER;
+        v_ids t_ids;
+      BEGIN
+        /* Captura boletas 'PAGADA' de HOY que tengan ítems de las SKUs demo */
+        SELECT b.id_boleta
+          BULK COLLECT INTO v_ids
+          FROM boleta_venta b
+         WHERE b.estado = 'PAGADA'
+           AND TRUNC(b.fecha) = TRUNC(SYSDATE)
+           AND EXISTS (
+                 SELECT 1
+                   FROM boleta_venta_detalle d
+                   JOIN producto p
+                     ON p.id_producto = d.id_producto
+                  WHERE d.id_boleta = b.id_boleta
+                    AND p.sku IN ('SKU-11KG','SKU-5KG')
+               );
+
+        IF v_ids.COUNT &gt; 0 THEN
+          /* Primero borra detalles (FK), luego cabeceras */
+          FORALL i IN 1..v_ids.COUNT
+            DELETE FROM boleta_venta_detalle WHERE id_boleta = v_ids(i);
+
+          FORALL i IN 1..v_ids.COUNT
+            DELETE FROM boleta_venta WHERE id_boleta = v_ids(i);
+        END IF;
+      END;
+      /
+    </sql>
+
+    <!-- 1) Asegura productos demo (MERGE) -->
+    <sql>
+      MERGE INTO producto p
+      USING (
+        SELECT 'SKU-11KG' sku, 'Gas 11 kg' nombre, '11KG' formato, 'UN' um, 8000 costo, 12000 precio FROM dual
+        UNION ALL
+        SELECT 'SKU-5KG',  'Gas 5 kg', '5KG',  'UN', 4000,  6000 FROM dual
+      ) s
+      ON (p.sku = s.sku)
+      WHEN NOT MATCHED THEN INSERT
+        (sku, nombre, formato, unidad_medida, costo, precio, activo, fecha_creacion, creado_por)
+        VALUES (s.sku, s.nombre, s.formato, s.um, s.costo, s.precio, 'S', SYSTIMESTAMP, USER)
+    </sql>
+
+    <!-- 2) Inserta una boleta de demo con 2 ítems (usa la secuencia para NUMERO) -->
+    <sql endDelimiter="/" splitStatements="false">
+      DECLARE
+        v_boleta  NUMBER;
+        v_p1      NUMBER;
+        v_p2      NUMBER;
+        v_numero  NUMBER;
+      BEGIN
+        /* Contexto para el trigger de usuario vendedor */
+        PKG_APP_CTX.SET_ID_USUARIO(1);
+
+        SELECT SEQ_BOLETA_NUMERO.NEXTVAL INTO v_numero FROM dual;
+
+        INSERT INTO boleta_venta (numero, fecha, id_cliente, neto, iva, total, metodo_pago, estado)
+        VALUES (v_numero, SYSDATE, NULL, 18000, 3420, 21420, 'EFECTIVO', 'PAGADA')
+        RETURNING id_boleta INTO v_boleta;
+
+        SELECT id_producto INTO v_p1 FROM producto WHERE sku = 'SKU-11KG';
+        SELECT id_producto INTO v_p2 FROM producto WHERE sku = 'SKU-5KG';
+
+        /* NO insertar columnas virtuales (p.ej. SUBTOTAL) */
+        INSERT INTO boleta_venta_detalle (id_boleta, id_producto, cantidad, precio_unitario, descuento)
+        VALUES (v_boleta, v_p1, 1, 12000, 0);
+
+        INSERT INTO boleta_venta_detalle (id_boleta, id_producto, cantidad, precio_unitario, descuento)
+        VALUES (v_boleta, v_p2, 1,  6000, 0);
+
+        COMMIT;
+      END;
+      /
+    </sql>
+
+    <!-- 3) Refresca MVs (VPP y también diarias para coherencia) -->
+    <sql endDelimiter="/" splitStatements="false">
+      BEGIN
+        DBMS_MVIEW.REFRESH('MV_VENTAS_POR_PRODUCTO','C');
+        DBMS_MVIEW.REFRESH('MV_VENTAS_DIARIAS','C');
+      END;
+      /
+    </sql>
+
+    <!-- Rollback: borra demo del día y refresca MVs -->
+    <rollback>
+      <sql endDelimiter="/" splitStatements="false">
+        DECLARE
+          TYPE t_ids IS TABLE OF NUMBER;
+          v_ids t_ids;
+        BEGIN
+          SELECT b.id_boleta
+            BULK COLLECT INTO v_ids
+            FROM boleta_venta b
+           WHERE b.estado = 'PAGADA'
+             AND TRUNC(b.fecha) = TRUNC(SYSDATE)
+             AND EXISTS (
+                   SELECT 1
+                     FROM boleta_venta_detalle d
+                     JOIN producto p
+                       ON p.id_producto = d.id_producto
+                    WHERE d.id_boleta = b.id_boleta
+                      AND p.sku IN ('SKU-11KG','SKU-5KG')
+                 );
+
+          IF v_ids.COUNT &gt; 0 THEN
+            FORALL i IN 1..v_ids.COUNT
+              DELETE FROM boleta_venta_detalle WHERE id_boleta = v_ids(i);
+
+            FORALL i IN 1..v_ids.COUNT
+              DELETE FROM boleta_venta WHERE id_boleta = v_ids(i);
+          END IF;
+
+          DBMS_MVIEW.REFRESH('MV_VENTAS_POR_PRODUCTO','C');
+          DBMS_MVIEW.REFRESH('MV_VENTAS_DIARIAS','C');
+        END;
+        /
+      </sql>
+    </rollback>
+
+  </changeSet>
+
+</databaseChangeLog>

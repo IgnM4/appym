@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="036e-scheduler-fix-job-action" author="sgbd" context="!admin">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">
+        SELECT COUNT(*) FROM user_scheduler_jobs WHERE job_name = 'JOB_REFRESH_MVS'
+      </sqlCheck>
+    </preConditions>
+
+    <!-- Corrige tipo/acción del job (usa q'[]' para evitar líos de comillas) -->
+    <sql endDelimiter="/" splitStatements="false">
+      BEGIN
+        DBMS_SCHEDULER.DISABLE('JOB_REFRESH_MVS');
+
+        DBMS_SCHEDULER.SET_ATTRIBUTE(
+          name      =&gt; 'JOB_REFRESH_MVS',
+          attribute =&gt; 'job_type',
+          value     =&gt; 'PLSQL_BLOCK'
+        );
+
+        DBMS_SCHEDULER.SET_ATTRIBUTE(
+          name      =&gt; 'JOB_REFRESH_MVS',
+          attribute =&gt; 'job_action',
+          value     =&gt; q'[BEGIN
+            DBMS_MVIEW.REFRESH(''MV_VENTAS_POR_PRODUCTO'',''C'');
+            DBMS_MVIEW.REFRESH(''MV_VENTAS_DIARIAS'',''C'');
+          END;]'
+        );
+
+        DBMS_SCHEDULER.ENABLE('JOB_REFRESH_MVS');
+      END;
+      /
+    </sql>
+
+    <rollback>
+      <!-- En rollback lo dejamos deshabilitado (seguro) -->
+      <sql endDelimiter="/" splitStatements="false">
+        BEGIN
+          DBMS_SCHEDULER.DISABLE('JOB_REFRESH_MVS');
+        END;
+        /
+      </sql>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>
