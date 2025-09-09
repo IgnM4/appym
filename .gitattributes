@@ -32,3 +32,40 @@
 # SQL/XML -> LF
 *.sql  text eol=lf
 *.xml  text eol=lf
+
+# Java/Build
+*.jar binary
+*.war binary
+*.ear binary
+*.class binary
+
+# Fuentes
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+
+# Archivos comprimidos
+*.7z  binary
+*.tar binary
+*.gz  binary
+*.bz2 binary
+*.xz  binary
+
+# Multimedia
+*.mp3 binary
+*.mp4 binary
+*.mov binary
+*.wav binary
+
+# Texto varios
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.properties text eol=lf
+*.gradle text eol=lf
+*.svg  text eol=lf   # (SVG es XML, conviene tratarlo como texto)
+*.csv  text eol=lf   # si vas a versionar CSV “ligeros”
