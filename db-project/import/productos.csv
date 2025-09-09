@@ -1,0 +1,4 @@
+sku,nombre,formato,unidad_medida,costo,precio,imagen_url,activo
+GAS-5,Cilindro Gas 5 Kg,5KG,UN,8000,10500,,S
+GAS-11,Cilindro Gas 11 Kg,11KG,UN,14000,18500,,S
+GAS-15,Cilindro Gas 15 Kg,15KG,UN,18000,23500,,S

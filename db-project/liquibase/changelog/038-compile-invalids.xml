@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+  <changeSet id="038-compile-invalids" author="sgbd">
+    <comment>Recompila objetos inválidos (FUNCTION/PROCEDURE/PACKAGE/VIEW) en APP_PYME</comment>
+    <sql splitStatements="false" endDelimiter="/">
+      <![CDATA[
+      DECLARE
+        PROCEDURE compile_obj(p_name VARCHAR2, p_type VARCHAR2) IS
+        BEGIN
+          IF p_type = 'PACKAGE' THEN
+            EXECUTE IMMEDIATE 'ALTER PACKAGE '||p_name||' COMPILE';
+            EXECUTE IMMEDIATE 'ALTER PACKAGE '||p_name||' COMPILE BODY';
+          ELSE
+            EXECUTE IMMEDIATE 'ALTER '||p_type||' '||p_name||' COMPILE';
+          END IF;
+        EXCEPTION WHEN OTHERS THEN NULL; END;
+      BEGIN
+        FOR r IN (
+          SELECT object_name, object_type
+          FROM user_objects
+          WHERE status = 'INVALID'
+            AND object_type IN ('FUNCTION','PROCEDURE','PACKAGE','PACKAGE BODY','VIEW')
+        ) LOOP
+          compile_obj(
+            r.object_name,
+            CASE WHEN r.object_type='PACKAGE BODY' THEN 'PACKAGE' ELSE r.object_type END
+          );
+        END LOOP;
+      END;
+      ]]>
+    </sql>
+    <rollback>
+      <!-- no-op -->
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>
