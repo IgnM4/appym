@@ -1,5 +1,11 @@
 -- Liquibase-friendly seed: archivo sin comandos SQL*Plus ni delimitadores "/"
 DECLARE
+  -- Vars para boleta y productos (deben ir antes de subprogramas)
+  v_boleta NUMBER;
+  v_p1     NUMBER;
+  v_p2     NUMBER;
+  v_numero NUMBER;
+
   -- Helper: asegura producto si no existe
   PROCEDURE ensure_prod(
     p_sku     VARCHAR2,
@@ -23,12 +29,6 @@ DECLARE
       );
     END IF;
   END;
-
-  -- Vars para boleta y productos
-  v_boleta NUMBER;
-  v_p1     NUMBER;
-  v_p2     NUMBER;
-  v_numero NUMBER;
 BEGIN
   -- 1) Setear contexto
   PKG_APP_CTX.SET_ID_USUARIO(1);
