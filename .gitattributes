@@ -1,7 +1,7 @@
-# Default: normaliza texto y usa LF en el repo; checkout LF salvo overrides
+﻿# Default: normaliza texto y usa LF en el repo; checkout LF salvo overrides
 * text=auto eol=lf
 
-# Binarios (sin conversión)
+# Binarios (sin conversiÃ³n)
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -67,5 +67,5 @@
 *.html text eol=lf
 *.properties text eol=lf
 *.gradle text eol=lf
-*.svg  text eol=lf   # (SVG es XML, conviene tratarlo como texto)
-*.csv  text eol=lf   # si vas a versionar CSV “ligeros”
+*.svg  text eol=lf
+*.csv  text eol=lf
