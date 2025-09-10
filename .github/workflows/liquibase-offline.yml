@@ -1,1 +1,48 @@
-﻿<PEGA AQUÍ EL YAML DE ARRIBA>
+﻿name: CI Liquibase (offline)
+
+on:
+  push:
+    branches: [ main, chore/**, feat/**, fix/** ]
+  pull_request:
+
+jobs:
+  liquibase:
+    name: Validate & update-sql (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate (offline)
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE":/workspace \
+            -w /workspace \
+            liquibase/liquibase:4.33 \
+            --hub-mode=off \
+            --log-level=info \
+            --url="offline:oracle?version=21&defaultSchemaName=APP_PYME" \
+            --changeLogFile="db-project/liquibase/changelog/changelog-master.xml" \
+            --contexts="!admin and demo" \
+            validate
+
+      - name: Generate update SQL (offline)
+        run: |
+          mkdir -p ./liquibase-offline
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE":/workspace \
+            -w /workspace \
+            liquibase/liquibase:4.33 \
+            --hub-mode=off \
+            --log-level=info \
+            --url="offline:oracle?version=21&defaultSchemaName=APP_PYME" \
+            --changeLogFile="db-project/liquibase/changelog/changelog-master.xml" \
+            --contexts="!admin and demo" \
+            update-sql > ./liquibase-offline/update.sql
+
+      - name: Publicar artefacto (update.sql)
+        uses: actions/upload-artifact@v4
+        with:
+          name: liquibase-update-sql
+          path: liquibase-offline/update.sql
+
